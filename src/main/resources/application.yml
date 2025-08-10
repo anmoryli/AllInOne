@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: AllInOne
+
+  datasource:
+    url: jdbc:mysql://175.24.205.213:3306/station?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=UTC
+    username: username
+    password: lmjnb666
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  servlet:
+    multipart:
+      max-file-size: 200MB
+      max-request-size: 500MB   # ????????????max-file-size?
+      enabled: true             # ?????????????????????????
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+server:
+  port: 8094

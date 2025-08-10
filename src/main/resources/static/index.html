@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>临时工作站</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="/image.png" rel="icon" type="image/png">
+    <link href="https://cdn.iocdn.cc/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'STZhongsong', 'SimSun', 'Microsoft YaHei', sans-serif;
+        }
+    </style>
+</head>
+
+<body>
+     <!-- 顶部导航栏   -->
+    <header class="header">
+        <div class="header-left">
+            <button class="menu-toggle" id="menu-toggle">
+                <span class="material-icons">menu</span>
+            </button>
+            <div class="logo">
+                <span class="material-icons">work</span>
+                <span class="logo-text">临时工作站</span>
+            </div>
+        </div>
+
+        <div class="header-center">
+            <div class="search-container">
+                <div class="search-box">
+                    <span class="material-icons search-icon">search</span>
+                    <input type="text" placeholder="搜索文件、照片、待办事项..." id="global-search">
+                    <button class="search-options" id="search-options">
+                        <span class="material-icons">tune</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="header-right">
+            <button class="icon-btn" id="theme-toggle" title="切换主题">
+                <span class="material-icons">dark_mode</span>
+            </button>
+            <div class="user-profile" id="user-profile">
+                <img src="placeholder.jpg" alt="用户头像" class="user-avatar" id="user-avatar">
+                <div class="user-dropdown" id="user-dropdown">
+                    <div class="user-info">
+                        <img src="placeholder.jpg?height=64&width=64" alt="用户头像" class="dropdown-avatar"
+                            id="dropdown-avatar">
+                        <div class="user-details">
+                            <div class="user-name" id="user-name">未登录</div>
+                            <div class="user-email" id="user-email">请先登录</div>
+                        </div>
+                    </div>
+                    <div class="dropdown-divider"></div>
+                    <div class="dropdown-item" id="profile-settings">
+                        <span class="material-icons">person</span>
+                        <span>个人资料</span>
+                    </div>
+                    <div class="dropdown-item" id="upload-avatar">
+                        <span class="material-icons">photo_camera</span>
+                        <span>更换头像</span>
+                    </div>
+                    <div class="dropdown-divider"></div>
+                    <div class="dropdown-item" id="logout-btn">
+                        <span class="material-icons">logout</span>
+                        <span>退出登录</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+     <!-- 侧边导航栏   -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-content">
+            <div class="nav-section">
+                <div class="nav-item active" data-section="dashboard">
+                    <span class="material-icons">dashboard</span>
+                    <span class="nav-text">仪表板</span>
+                </div>
+                <div class="nav-item" data-section="files">
+                    <span class="material-icons">folder</span>
+                    <span class="nav-text">文件管理</span>
+                    <span class="nav-count" id="files-nav-count">0</span>
+                </div>
+                <div class="nav-item" data-section="photos">
+                    <span class="material-icons">photo_library</span>
+                    <span class="nav-text">相册</span>
+                    <span class="nav-count" id="photos-nav-count">0</span>
+                </div>
+                <div class="nav-item" data-section="todos">
+                    <span class="material-icons">checklist</span>
+                    <span class="nav-text">待办事项</span>
+                    <span class="nav-count" id="todos-nav-count">0</span>
+                </div>
+                <div class="nav-item" data-section="face-swap">
+                    <span class="material-icons">face_retouching_natural</span>
+                    <span class="nav-text">AI换脸</span>
+                    <span class="nav-count" id="face-swap-nav-count">0</span>
+                </div>
+                <div class="nav-item" data-section="heart">
+                    <span class="material-icons">favorite</span>
+                    <span class="nav-text">心灵伴侣</span>
+                </div>
+            </div>
+
+            <div class="nav-divider"></div>
+
+            <div class="nav-section">
+                <div class="nav-label">工具</div>
+                <div class="nav-item" data-section="ai-tools">
+                    <span class="material-icons">smart_toy</span>
+                    <span class="nav-text">AI工具箱</span>
+                </div>
+            </div>
+
+            <div class="nav-divider"></div>
+
+            <div class="nav-section">
+                <div class="nav-label">设置</div>
+                <div class="nav-item" data-section="settings">
+                    <span class="material-icons">settings</span>
+                    <span class="nav-text">系统设置</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+     <!-- 主内容区域   -->
+    <main class="main-content" id="main-content">
+         登录/注册模态框  
+        <div class="modal-overlay" id="auth-modal">
+            <div class="modal auth-modal">
+                <div class="modal-header">
+                    <h2 id="auth-title">登录到临时工作站</h2>
+                    <button class="close-btn" id="close-auth">
+                        <span class="material-icons">close</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="auth-logo">
+                        <span class="material-icons">work</span>
+                        <h3>临时工作站</h3>
+                        <p id="auth-subtitle">使用您的账户继续</p>
+                    </div>
+                    <form id="auth-form" class="auth-form">
+                        <div class="form-field">
+                            <input type="text" id="username" name="username" required placeholder=" ">
+                            <label for="username">用户名</label>
+                        </div>
+                        <div class="form-field">
+                            <input type="password" id="password" name="password" required placeholder=" ">
+                            <label for="password">密码</label>
+                        </div>
+                        <div class="form-field" id="email-field" style="display: none;">
+                            <input type="email" id="email" name="email" placeholder=" ">
+                            <label for="email">邮箱（可选）</label>
+                        </div>
+                        <div class="form-field" id="phone-field" style="display: none;">
+                            <input type="tel" id="phone" name="phone" placeholder=" ">
+                            <label for="phone">手机号（可选）</label>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="text-btn" id="auth-switch-btn">创建账户</button>
+                            <button type="submit" class="primary-btn" id="auth-submit">登录</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+         <!-- 仪表板   -->
+        <section class="content-section active" id="dashboard-section">
+            <div class="section-header">
+                <h1>仪表板 (临时工作站，但文件会永久保存，不用担心丢失)</h1>
+                <div class="section-subtitle">欢迎使用临时工作站，您的个人数字助手</div>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="dashboard-card" data-section="files">
+                    <div class="card-header">
+                        <div class="card-icon files">
+                            <span class="material-icons">folder</span>
+                        </div>
+                        <div class="card-title">文件管理 (归档存放，需要选择好目录)</div>
+                    </div>
+                    <div class="card-stats">
+                        <div class="stat-number" id="files-count">0</div>
+                        <div class="stat-label">个文件</div>
+                    </div>
+                    <div class="card-description">按目录分类管理您的文件</div>
+                </div>
+
+                <div class="dashboard-card" data-section="photos">
+                    <div class="card-header">
+                        <div class="card-icon photos">
+                            <span class="material-icons">photo_library</span>
+                        </div>
+                        <div class="card-title">相册</div>
+                    </div>
+                    <div class="card-stats">
+                        <div class="stat-number" id="photos-count">0</div>
+                        <div class="stat-label">张照片</div>
+                    </div>
+                    <div class="card-description">存储和管理您的照片</div>
+                </div>
+
+                <div class="dashboard-card" data-section="todos">
+                    <div class="card-header">
+                        <div class="card-icon todos">
+                            <span class="material-icons">checklist</span>
+                        </div>
+                        <div class="card-title">待办事项</div>
+                    </div>
+                    <div class="card-stats">
+                        <div class="stat-number" id="pending-todos-count">0</div>
+                        <div class="stat-label">待完成</div>
+                    </div>
+                    <div class="card-description">管理您的任务和计划</div>
+                </div>
+
+                <div class="dashboard-card" data-section="face-swap">
+                    <div class="card-header">
+                        <div class="card-icon face-swap">
+                            <span class="material-icons">face_retouching_natural</span>
+                        </div>
+                        <div class="card-title">AI换脸</div>
+                    </div>
+                    <div class="card-stats">
+                        <div class="stat-number" id="face-swap-count">0</div>
+                        <div class="stat-label">次换脸</div>
+                    </div>
+                    <div class="card-description">AI智能换脸，支持图片和视频</div>
+                </div>
+
+                <div class="dashboard-card" data-section="heart">
+                    <div class="card-header">
+                        <div class="card-icon heart">
+                            <span class="material-icons">favorite</span>
+                        </div>
+                        <div class="card-title">心灵伴侣</div>
+                    </div>
+                    <div class="card-stats">
+                        <div class="stat-number">∞</div>
+                        <div class="stat-label">陪伴时光</div>
+                    </div>
+                    <div class="card-description">AI心灵伴侣，倾听您的心声</div>
+                </div>
+
+                <div class="dashboard-card" data-section="ai-tools">
+                    <div class="card-header">
+                        <div class="card-icon ai-tools">
+                            <span class="material-icons">smart_toy</span>
+                        </div>
+                        <div class="card-title">AI工具箱</div>
+                    </div>
+                    <div class="card-stats">
+                        <div class="stat-number">32</div>
+                        <div class="stat-label">个工具</div>
+                    </div>
+                    <div class="card-description">各种AI工具助您提高效率</div>
+                </div>
+            </div>
+        </section>
+
+         <!-- 心灵伴侣   -->
+        <section class="content-section" id="heart-section">
+            <div class="section-header">
+                <h1>心灵伴侣</h1>
+                <div class="section-subtitle">您的AI心灵伴侣，随时倾听您的心声，提供温暖的陪伴</div>
+            </div>
+
+            <div class="content-body">
+                <div class="heart-chat-container">
+                    <div class="heart-chat-header">
+                        <div class="companion-info">
+                            <div class="companion-avatar">
+                                <span class="material-icons">favorite</span>
+                            </div>
+                            <div class="companion-details">
+                                <h3>心灵伴侣</h3>
+                                <p class="companion-status">在线 • 随时为您服务</p>
+                            </div>
+                        </div>
+                        <div class="chat-actions">
+                            <button class="icon-btn" id="clear-heart-chat" title="清空聊天记录">
+                                <span class="material-icons">clear_all</span>
+                            </button>
+                            <button class="icon-btn" id="download-heart-chat" title="下载聊天记录">
+                                <span class="material-icons">download</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="heart-chat-messages" id="heart-chat-history">
+                        <div class="welcome-message">
+                            <div class="message-bubble ai-message">
+                                <div class="message-content">
+                                    <p>你好！我是你的心灵伴侣，很高兴见到你。无论你想分享什么，我都会认真倾听。有什么想聊的吗？</p>
+                                </div>
+                                <div class="message-time">刚刚</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="heart-chat-input-container">
+                        <div class="chat-input-wrapper">
+                            <textarea 
+                                id="heart-chat-input" 
+                                placeholder="在这里输入您想说的话..." 
+                                rows="1"
+                                maxlength="1000"
+                            ></textarea>
+                            <button class="send-btn" id="heart-send-btn" disabled>
+                                <span class="material-icons">send</span>
+                            </button>
+                        </div>
+                        <div class="input-hint">
+                            <span class="char-count">0/1000</span>
+                            <span class="hint-text">按 Enter 发送，Shift+Enter 换行</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+         <!-- 文件管理   -->
+        <section class="content-section" id="files-section">
+            <div class="section-header">
+                <h1>文件管理</h1>
+                <div class="section-subtitle">按目录分类管理您的文件，支持预览、下载和分享</div>
+                <div class="section-actions">
+                    <button class="primary-btn" id="upload-file-btn">
+                        <span class="material-icons">upload</span>
+                        上传文件
+                    </button>
+                </div>
+            </div>
+
+            <div class="content-body">
+                <div class="files-container" id="files-container">
+                    文件内容将在这里动态生成
+                </div>
+            </div>
+        </section>
+
+         <!-- 相册   -->
+        <section class="content-section" id="photos-section">
+            <div class="section-header">
+                <h1>相册</h1>
+                <div class="section-subtitle">管理您的照片，支持预览和下载</div>
+                <input type="text" class="selection" id="copy-to-save" placeholder="输入链接直接保存">
+                <button class="primary-btn" onclick="copyToSavePhoto()">保存照片</button>
+                <div class="section-actions">
+                    <button class="primary-btn" id="upload-photo-btn">
+                        <span class="material-icons">add_photo_alternate</span>
+                        上传照片
+                    </button>
+                </div>
+            </div>
+
+            <div class="content-body">
+                <div class="photos-grid" id="photos-grid">
+                    照片内容将在这里动态生成
+                </div>
+            </div>
+        </section>
+
+         <!-- 待办事项   -->
+        <section class="content-section" id="todos-section">
+            <div class="section-header">
+                <h1>待办事项</h1>
+                <div class="section-subtitle">管理您的任务和计划，保持高效工作</div>
+            </div>
+
+            <div class="content-body">
+                <div class="todo-input-section">
+                    <div class="todo-input-container">
+                        <input type="text" id="new-todo-input" placeholder="添加新的待办事项..." class="todo-input">
+                        <button class="add-todo-btn" id="add-todo-btn">
+                            <span class="material-icons">add</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="todos-stats">
+                    <div class="stat-card">
+                        <div class="stat-number" id="total-todos">0</div>
+                        <div class="stat-label">总计</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="pending-todos">0</div>
+                        <div class="stat-label">待完成</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="completed-todos">0</div>
+                        <div class="stat-label">已完成</div>
+                    </div>
+                </div>
+
+                <div class="todos-list" id="todos-list">
+                    待办事项列表将在这里动态生成
+                </div>
+            </div>
+        </section>
+
+         <!-- AI换脸   -->
+        <section class="content-section" id="face-swap-section">
+            <div class="section-header">
+                <h1>AI换脸</h1>
+                <div class="section-subtitle">使用AI技术进行智能换脸，支持图片和视频处理</div>
+                <div class="section-actions">
+                    <button class="primary-btn" id="new-face-swap-btn">
+                        <span class="material-icons">face_retouching_natural</span>
+                        开始换脸
+                    </button>
+                </div>
+            </div>
+
+            <div class="content-body">
+                <div class="face-swap-container">
+                    换脸工具区域
+                    <div class="face-swap-tool" id="face-swap-tool">
+                        <div class="tool-header">
+                            <h3>AI换脸工具</h3>
+                            <p>上传源图片和目标人脸，AI将为您完成换脸处理</p>
+                        </div>
+
+                        <div class="swap-form">
+                            <div class="swap-type-selector">
+                                <div class="type-option active" data-type="imgSwap">
+                                    <span class="material-icons">image</span>
+                                    <span>图片换脸</span>
+                                </div>
+                                <div class="type-option" data-type="videoSwap">
+                                    <span class="material-icons">videocam</span>
+                                    <span>视频换脸（仅支持10s视频）</span>
+                                </div>
+                            </div>
+
+                            <div class="upload-section">
+                                <div class="upload-group">
+                                    <h4>源文件 (包含人脸的图片/视频)</h4>
+                                    <div class="upload-options">
+                                        <div class="upload-option">
+                                            <input type="file" id="src-file-input" accept="image/*,video/*"
+                                                style="display: none;">
+                                            <button class="upload-btn" id="src-upload-btn">
+                                                <span class="material-icons">upload</span>
+                                                本地上传
+                                            </button>
+                                        </div>
+                                        <div class="upload-option">
+                                            <input type="url" id="src-url-input" placeholder="输入图片/视频链接">
+                                            <button class="url-btn" id="src-url-btn">
+                                                <span class="material-icons">link</span>
+                                                使用链接
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="preview-container" id="src-preview">
+                                        <div class="preview-placeholder">
+                                            <span class="material-icons">add_photo_alternate</span>
+                                            <p>选择源文件</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="upload-group">
+                                    <h4>目标人脸 (要换成的人脸照片)</h4>
+                                    <div class="upload-options">
+                                        <div class="upload-option">
+                                            <input type="file" id="dst-file-input" accept="image/*"
+                                                style="display: none;">
+                                            <button class="upload-btn" id="dst-upload-btn">
+                                                <span class="material-icons">upload</span>
+                                                本地上传
+                                            </button>
+                                        </div>
+                                        <div class="upload-option">
+                                            <input type="url" id="dst-url-input" placeholder="输入人脸照片链接">
+                                            <button class="url-btn" id="dst-url-btn">
+                                                <span class="material-icons">link</span>
+                                                使用链接
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="preview-container" id="dst-preview">
+                                        <div class="preview-placeholder">
+                                            <span class="material-icons">face</span>
+                                            <p>选择目标人脸</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="swap-actions">
+                                <button class="primary-btn" id="start-swap-btn" disabled>
+                                    <span class="material-icons">auto_fix_high</span>
+                                    开始换脸
+                                </button>
+                                <button class="secondary-btn" id="reset-swap-btn">
+                                    <span class="material-icons">refresh</span>
+                                    重置
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                     换脸历史  
+                    <div class="face-swap-history">
+                        <div class="history-header">
+                            <h3>换脸历史</h3>
+                            <button class="icon-btn" id="refresh-history-btn">
+                                <span class="material-icons">refresh</span>
+                            </button>
+                        </div>
+                        <div class="history-list" id="face-swap-history-list">
+                            历史记录将在这里动态生成
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+         <!-- AI工具箱   -->
+        <section class="content-section" id="ai-tools-section">
+            <div class="section-header">
+                <h1>AI工具箱</h1>
+                <div class="section-subtitle">精选AI工具，提升工作效率。点击工具卡片即可跳转到对应网站</div>
+                <div href="https://ai-bot.cn/" class="btn btn-primary" id="ai-jump" onclick="jump()">点击跳转AI工具合集网站</div>
+            </div>
+
+            <div class="content-body">
+                <div class="tools-categories">
+                    <div class="tools-category">
+                        <div class="category-header">
+                            <span class="material-icons">text_fields</span>
+                            <h2>文本处理</h2>
+                        </div>
+                        <div class="tools-grid" id="text-tools-grid">
+                            文本工具将在这里动态生成
+                        </div>
+                    </div>
+
+                    <div class="tools-category">
+                        <div class="category-header">
+                            <span class="material-icons">image</span>
+                            <h2>图像处理</h2>
+                        </div>
+                        <div class="tools-grid" id="image-tools-grid">
+                            图像工具将在这里动态生成
+                        </div>
+                    </div>
+
+                    <div class="tools-category">
+                        <div class="category-header">
+                            <span class="material-icons">video_library</span>
+                            <h2>视频处理</h2>
+                        </div>
+                        <div class="tools-grid" id="video-tools-grid">
+                            视频工具将在这里动态生成
+                        </div>
+                    </div>
+
+                    <div class="tools-category">
+                        <div class="category-header">
+                            <span class="material-icons">code</span>
+                            <h2>代码开发</h2>
+                        </div>
+                        <div class="tools-grid" id="code-tools-grid">
+                            代码工具将在这里动态生成
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+         <!-- 系统设置   -->
+        <section class="content-section" id="settings-section">
+            <div class="section-header">
+                <h1>系统设置</h1>
+                <div class="section-subtitle">管理您的账户和系统偏好设置</div>
+            </div>
+
+            <div class="content-body">
+                <div class="settings-grid">
+                    <div class="settings-card">
+                        <div class="settings-header">
+                            <span class="material-icons">person</span>
+                            <h3>个人信息</h3>
+                        </div>
+                        <div class="settings-content">
+                            <div class="user-info-display">
+                                <img src="placeholder.jpg?height=80&width=80" alt="用户头像" class="settings-avatar"
+                                    id="settings-avatar">
+                                <div class="user-info-text">
+                                    <div class="info-item">
+                                        <label>用户名</label>
+                                        <span id="settings-username">未登录</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <label>邮箱</label>
+                                        <span id="settings-email">未绑定</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <label>手机号</label>
+                                        <span id="settings-phone">未绑定</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="settings-actions">
+                                <button class="secondary-btn" id="change-avatar-btn">更换头像</button>
+                                <button class="secondary-btn" id="bind-email-btn">绑定邮箱</button>
+                                <button class="secondary-btn" id="bind-phone-btn">绑定手机</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-card">
+                        <div class="settings-header">
+                            <span class="material-icons">security</span>
+                            <h3>安全设置</h3>
+                        </div>
+                        <div class="settings-content">
+                            <div class="settings-actions">
+                                <button class="secondary-btn" id="change-password-btn">修改密码</button>
+                                <button class="danger-btn" id="delete-account-btn">删除账户</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+     <!-- 文件上传模态框   -->
+    <div class="modal-overlay" id="file-upload-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>上传文件</h2>
+                <button class="close-btn" id="close-file-upload">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="file-upload-form">
+                    <div class="form-field">
+                        <input type="file" id="file-input" name="file" required>
+                        <label for="file-input">选择文件</label>
+                        <div class="field-hint">支持文档、图片、视频、音频等多种格式</div>
+                    </div>
+                    <div class="form-field">
+                        <select id="file-category-select" name="cate">
+                            <option value="">选择已有目录</option>
+                        </select>
+                        <label for="file-category-select">文件目录</label>
+                    </div>
+                    <div class="form-field">
+                        <input type="text" id="file-category-input" name="cate" placeholder=" ">
+                        <label for="file-category-input">或创建新目录</label>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="secondary-btn" onclick="hideModal('file-upload-modal')">取消</button>
+                        <button type="submit" class="primary-btn">上传</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+     <!-- 照片上传模态框   -->
+    <div class="modal-overlay" id="photo-upload-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>上传照片</h2>
+                <button class="close-btn" id="close-photo-upload">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="photo-upload-form">
+                    <div class="form-field">
+                        <input type="file" id="photo-input" name="file" accept="image/*" multiple required>
+                        <label for="photo-input">选择照片</label>
+                        <div class="field-hint">支持选择多张照片同时上传</div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="secondary-btn"
+                            onclick="hideModal('photo-upload-modal')">取消</button>
+                        <button type="submit" class="primary-btn">上传</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+     <!-- 头像上传模态框   -->
+    <div class="modal-overlay" id="avatar-upload-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>更换头像</h2>
+                <button class="close-btn" id="close-avatar-upload">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="avatar-upload-form">
+                    <div class="form-field">
+                        <input type="file" id="avatar-input" name="avatar" accept="image/*" required>
+                        <label for="avatar-input">选择头像图片</label>
+                        <div class="field-hint">建议使用正方形图片，支持JPG、PNG格式</div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="secondary-btn"
+                            onclick="hideModal('avatar-upload-modal')">取消</button>
+                        <button type="submit" class="primary-btn">上传</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+     <!-- 预览模态框   -->
+    <div class="modal-overlay" id="preview-modal">
+        <div class="modal large">
+            <div class="modal-header">
+                <h2 id="preview-title">文件预览</h2>
+                <div class="preview-actions">
+                    <button class="icon-btn" id="preview-download" title="下载">
+                        <span class="material-icons">download</span>
+                    </button>
+                    <button class="icon-btn" id="preview-copy-link" title="复制链接">
+                        <span class="material-icons">link</span>
+                    </button>
+                    <button class="icon-btn" id="preview-delete" title="删除">
+                        <span class="material-icons">delete</span>
+                    </button>
+                    <button class="close-btn" id="close-preview">
+                        <span class="material-icons">close</span>
+                    </button>
+                </div>
+            </div>
+            <div class="modal-body">
+                <div class="preview-container" id="preview-container">
+                    预览内容将在这里动态生成
+                </div>
+                <div class="preview-info" id="preview-info">
+                    文件信息将在这里显示
+                </div>
+            </div>
+        </div>
+    </div>
+
+     <!-- 表单模态框   -->
+    <div class="modal-overlay" id="form-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="form-modal-title">表单</h2>
+                <button class="close-btn" id="close-form-modal">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            <div class="modal-body" id="form-modal-body">
+                表单内容将在这里动态生成
+            </div>
+        </div>
+    </div>
+
+     <!-- 加载提示   -->
+    <div class="loading-overlay" id="loading">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <div class="loading-text" id="loading-text">加载中...</div>
+        </div>
+    </div>
+
+     <!-- 消息提示   -->
+    <div class="toast" id="toast">
+        <div class="toast-content">
+            <span class="material-icons toast-icon" id="toast-icon">info</span>
+            <span class="toast-message" id="toast-message"></span>
+        </div>
+        <button class="toast-close" id="toast-close">
+            <span class="material-icons">close</span>
+        </button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
