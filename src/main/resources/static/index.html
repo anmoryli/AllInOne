@@ -132,7 +132,7 @@
 
      <!-- 主内容区域   -->
     <main class="main-content" id="main-content">
-         登录/注册模态框  
+         <!-- 登录/注册模态框   -->
         <div class="modal-overlay" id="auth-modal">
             <div class="modal auth-modal">
                 <div class="modal-header">
@@ -511,7 +511,7 @@
                         </div>
                     </div>
 
-                     换脸历史  
+                     <!-- 换脸历史   -->
                     <div class="face-swap-history">
                         <div class="history-header">
                             <h3>换脸历史</h3>
@@ -731,6 +731,12 @@
             <div class="modal-header">
                 <h2 id="preview-title">文件预览</h2>
                 <div class="preview-actions">
+                    <button class="icon-btn" id="preview-prev" title="上一个" onclick="navigatePreview(-1)" style="display: none;">
+                        <span class="material-icons">chevron_left</span>
+                    </button>
+                    <button class="icon-btn" id="preview-next" title="下一个" onclick="navigatePreview(1)" style="display: none;">
+                        <span class="material-icons">chevron_right</span>
+                    </button>
                     <button class="icon-btn" id="preview-download" title="下载">
                         <span class="material-icons">download</span>
                     </button>

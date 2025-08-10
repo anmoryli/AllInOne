@@ -69,6 +69,9 @@ const aiTools = {
   ],
 }
 
+let currentFileList = [] // 当前分类的文件列表
+let currentFileIndex = 0 // 当前预览文件的索引
+
 /* DOM元素 */
 const elements = {
   // 导航和菜单
@@ -196,15 +199,6 @@ document.addEventListener("DOMContentLoaded", () => {
   updateFileAcceptTypes() // 初始化文件接受类型
   setupHeartChatEventListeners() // 初始化心灵伴侣事件监听
 })
-
-function loadSettingUserInfo() {
-  if (currentUser) {
-    console.log("[loadSettingUserInfo]currentUser:", currentUser)
-    elements.settingsUsername.value = currentUser.username
-    elements.settingsEmail.value = currentUser.email || ""
-    elements.settingsPhone.value = currentUser.phone || ""
-  }
-}
 
 function jump() {
   window.open("https://ai-bot.cn/", "_blank")
@@ -2004,6 +1998,7 @@ function renderFilesByCategory(files) {
     const categoryFiles = categories[categoryName]
     const categorySection = document.createElement("div")
     categorySection.className = "category-section"
+    categorySection.setAttribute("data-category", categoryName)
 
     categorySection.innerHTML = `
             <div class="category-header">
@@ -2024,10 +2019,23 @@ function renderFilesByCategory(files) {
 
 function createFileItem(file) {
   const iconName = getFileIcon(file.type)
+  const isImage = file.type.includes("image")
+
+  let fileIconContent = ""
+  if (isImage) {
+    const imageUrl = `${FILE_SERVER_URL}${file.path}`
+    fileIconContent = `<img src="${imageUrl}" alt="${escapeHtml(file.name)}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                      <div style="display: none; align-items: center; justify-content: center; width: 100%; height: 100%;">
+                        <span class="material-icons">${iconName}</span>
+                      </div>`
+  } else {
+    fileIconContent = `<span class="material-icons">${iconName}</span>`
+  }
+
   return `
-        <div class="file-item" onclick="previewFile(${file.fileId}, '${escapeHtml(file.name)}', '${file.path}', '${file.type}', ${file.size})">
+        <div class="file-item" onclick="previewFile(${file.fileId}, '${escapeHtml(file.name)}', '${file.path}', '${file.type}', ${file.size}, '${escapeHtml(file.cate)}')">
             <div class="file-icon">
-                <span class="material-icons">${iconName}</span>
+                ${fileIconContent}
             </div>
             <div class="file-info">
                 <h4 title="${escapeHtml(file.name)}">${escapeHtml(file.name)}</h4>
@@ -2058,8 +2066,34 @@ function formatFileSize(bytes) {
   return Number.parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i]
 }
 
-function previewFile(fileId, name, path, type, size) {
-  currentPreviewItem = { id: fileId, name, path, type, size, isPhoto: false }
+function previewFile(fileId, name, path, type, size, category) {
+  // 获取当前分类的所有文件
+  const categorySection = document.querySelector(`[data-category="${category}"]`)
+  if (categorySection) {
+    const fileItems = categorySection.querySelectorAll(".file-item")
+    currentFileList = Array.from(fileItems)
+      .map((item) => {
+        const onclick = item.getAttribute("onclick")
+        const match = onclick.match(/previewFile$$(\d+),\s*'([^']*)',\s*'([^']*)',\s*'([^']*)',\s*(\d+),\s*'([^']*)'$$/)
+        if (match) {
+          return {
+            id: Number.parseInt(match[1]),
+            name: match[2].replace(/\\'/g, "'"),
+            path: match[3],
+            type: match[4],
+            size: Number.parseInt(match[5]),
+            category: match[6].replace(/\\'/g, "'"),
+          }
+        }
+        return null
+      })
+      .filter((item) => item !== null)
+
+    // 找到当前文件的索引
+    currentFileIndex = currentFileList.findIndex((file) => file.id === fileId)
+  }
+
+  currentPreviewItem = { id: fileId, name, path, type, size, isPhoto: false, category }
 
   elements.previewTitle.textContent = name
 
@@ -2102,144 +2136,39 @@ function previewFile(fileId, name, path, type, size) {
         <h4>${escapeHtml(name)}</h4>
         <p><strong>大小:</strong> ${formatFileSize(size)}</p>
         <p><strong>类型:</strong> ${type}</p>
+        <p><strong>分类:</strong> ${category}</p>
         <p><strong>链接:</strong> <code>${fileUrl}</code></p>
     `
+
+  // 更新切换按钮状态
+  updateNavigationButtons()
 
   showModal("preview-modal")
 }
 
-async function downloadCurrentPreview() {
-  if (!currentPreviewItem) return
+function updateNavigationButtons() {
+  const prevBtn = document.getElementById("preview-prev")
+  const nextBtn = document.getElementById("preview-next")
 
-  const fileUrl = currentPreviewItem.isSwapResult
-    ? currentPreviewItem.path.startsWith("http")
-      ? currentPreviewItem.path
-      : `${FILE_SERVER_URL}${currentPreviewItem.path}`
-    : `${FILE_SERVER_URL}${currentPreviewItem.path}`
+  if (prevBtn && nextBtn) {
+    prevBtn.style.display = currentFileList.length > 1 ? "flex" : "none"
+    nextBtn.style.display = currentFileList.length > 1 ? "flex" : "none"
 
-  try {
-    // 创建一个临时链接来下载文件
-    const link = document.createElement("a")
-    link.href = fileUrl
-    link.download = currentPreviewItem.name
-    link.target = "_blank"
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-
-    showToast("开始下载文件", "success")
-  } catch (error) {
-    console.error("Download error:", error)
-    showToast("下载失败，请稍后重试", "error")
+    prevBtn.disabled = currentFileIndex <= 0
+    nextBtn.disabled = currentFileIndex >= currentFileList.length - 1
   }
 }
 
-async function copyCurrentPreviewLink() {
-  if (!currentPreviewItem) return
+function navigatePreview(direction) {
+  if (currentFileList.length <= 1) return
 
-  const fileUrl = currentPreviewItem.isSwapResult
-    ? currentPreviewItem.path.startsWith("http")
-      ? currentPreviewItem.path
-      : `${FILE_SERVER_URL}${currentPreviewItem.path}`
-    : `${FILE_SERVER_URL}${currentPreviewItem.path}`
+  let newIndex = currentFileIndex + direction
+  if (newIndex < 0) newIndex = 0
+  if (newIndex >= currentFileList.length) newIndex = currentFileList.length - 1
 
-  try {
-    // 检查是否支持现代剪贴板API
-    if (navigator.clipboard && navigator.clipboard.writeText && window.isSecureContext) {
-      await navigator.clipboard.writeText(fileUrl)
-      showToast("文件链接已复制到剪贴板", "success")
-    } else {
-      // 降级方案：使用传统方法
-      copyToClipboardFallback(fileUrl)
-    }
-  } catch (error) {
-    console.error("Copy error:", error)
-    // 降级方案
-    copyToClipboardFallback(fileUrl)
-  }
-}
-
-// 添加降级复制函数
-function copyToClipboardFallback(text) {
-  try {
-    const textArea = document.createElement("textarea")
-    textArea.value = text
-    textArea.style.position = "fixed"
-    textArea.style.left = "-999999px"
-    textArea.style.top = "-999999px"
-    document.body.appendChild(textArea)
-    textArea.focus()
-    textArea.select()
-
-    const successful = document.execCommand("copy")
-    document.body.removeChild(textArea)
-
-    if (successful) {
-      showToast("文件链接已复制到剪贴板", "success")
-    } else {
-      // 最后的降级方案：显示链接让用户手动复制
-      showManualCopyDialog(text)
-    }
-  } catch (err) {
-    console.error("Fallback copy failed:", err)
-    showManualCopyDialog(text)
-  }
-}
-
-// 添加手动复制对话框
-function showManualCopyDialog(text) {
-  const result = prompt("复制功能不可用，请手动复制以下链接:", text)
-  if (result !== null) {
-    showToast("请手动复制链接", "info")
-  }
-}
-
-async function deleteCurrentPreview() {
-  if (!currentPreviewItem) return
-
-  if (currentPreviewItem.isSwapResult) {
-    showToast("换脸结果暂不支持删除", "info")
-    return
-  }
-
-  if (!confirm(`确定要删除文件"${currentPreviewItem.name}"吗？此操作不可撤销。`)) return
-
-  showLoading("正在删除文件...")
-
-  try {
-    const endpoint = currentPreviewItem.isPhoto ? "/photo/delete" : "/file/delete"
-    const param = currentPreviewItem.isPhoto ? "photoId" : "fileId"
-
-    const formData = new FormData()
-    formData.append(param, currentPreviewItem.id)
-
-    const response = await fetch(endpoint, {
-      method: "POST",
-      body: formData,
-    })
-
-    if (response.ok) {
-      const result = await response.json()
-      if (result > 0) {
-        showToast("文件删除成功", "success")
-        hideModal("preview-modal")
-
-        // 重新加载相应的数据
-        if (currentPreviewItem.isPhoto) {
-          loadPhotos()
-        } else {
-          loadFiles()
-        }
-        loadDashboardData()
-      } else {
-        showToast("文件删除失败", "error")
-      }
-    }
-  } catch (error) {
-    console.error("Delete error:", error)
-    showToast("删除失败，请稍后重试", "error")
-  } finally {
-    hideLoading()
+  if (newIndex !== currentFileIndex) {
+    const file = currentFileList[newIndex]
+    previewFile(file.id, file.name, file.path, file.type, file.size, file.category)
   }
 }
 
@@ -3009,8 +2938,8 @@ async function deleteTodo(todoId) {
 function updateSettingsDisplay() {
   if (currentUser) {
     elements.settingsUsername.textContent = currentUser.username
-    elements.settingsEmail.textContent = currentUser.email || "未绑定"
-    elements.settingsPhone.textContent = currentUser.phone || "未绑定"
+    elements.settingsEmail.textContent = currentUser.email || ""
+    elements.settingsPhone.textContent = currentUser.phone || ""
 
     // 更新头像
     if (currentUser.avatarPath) {
@@ -3116,8 +3045,6 @@ async function bindEmail() {
 
 async function bindPhone() {
   const phone = document.getElementById("phone-for-bind").value.trim()
-  console.log(phone);
-  
   if (!phone) {
     showToast("请输入手机号码", "warning")
     return
@@ -3320,4 +3247,152 @@ function escapeHtml(text) {
     "'": "&#039;",
   }
   return text.replace(/[&<>"']/g, (m) => map[m])
+}
+
+function downloadCurrentPreview() {
+  if (!currentPreviewItem) {
+    showToast("没有可下载的文件", "warning")
+    return
+  }
+
+  const fileUrl = currentPreviewItem.path.startsWith("http")
+    ? currentPreviewItem.path
+    : `${FILE_SERVER_URL}${currentPreviewItem.path}`
+  const fileName = currentPreviewItem.name
+
+  // 创建一个临时的 <a> 元素
+  const link = document.createElement("a")
+  link.href = fileUrl
+  link.download = fileName // 设置下载的文件名
+
+  // 模拟点击 <a> 元素开始下载
+  document.body.appendChild(link)
+  link.click()
+
+  // 移除临时的 <a> 元素
+  document.body.removeChild(link)
+
+  showToast("文件下载开始", "success")
+}
+
+function copyCurrentPreviewLink() {
+  if (!currentPreviewItem) {
+    showToast("没有可复制链接的文件", "warning");
+    return;
+  }
+
+  const fileUrl = currentPreviewItem.path.startsWith("http")
+    ? currentPreviewItem.path
+    : `${FILE_SERVER_URL}${currentPreviewItem.path}`;
+
+  console.log("尝试复制链接:", fileUrl);
+
+  // 使用 document.execCommand 复制
+  try {
+    const textarea = document.createElement("textarea");
+    textarea.value = fileUrl;
+    textarea.style.position = "fixed"; // 避免影响页面布局
+    textarea.style.opacity = "0"; // 隐藏 textarea
+    document.body.appendChild(textarea);
+    textarea.select();
+    const success = document.execCommand("copy");
+    document.body.removeChild(textarea);
+
+    if (success) {
+      showToast("文件链接已复制到剪贴板", "success");
+    } else {
+      console.warn("复制失败，显示手动复制提示");
+      showManualCopyPrompt(fileUrl);
+    }
+  } catch (err) {
+    console.error("复制失败:", err);
+    showManualCopyPrompt(fileUrl);
+  }
+}
+
+function showManualCopyPrompt(url) {
+  const textarea = document.createElement("textarea");
+  textarea.value = url;
+  textarea.readOnly = true;
+  textarea.style.width = "100%";
+  textarea.style.padding = "8px";
+  textarea.style.borderRadius = "4px";
+  textarea.style.border = "1px solid var(--border-color)";
+  textarea.style.marginBottom = "12px";
+
+  const modalContent = document.createElement("div");
+  modalContent.innerHTML = `
+    <p>无法自动复制，请手动复制以下链接：</p>
+  `;
+  modalContent.appendChild(textarea);
+  modalContent.appendChild(
+    Object.assign(document.createElement("button"), {
+      className: "primary-btn",
+      textContent: "关闭",
+      onclick: () => hideModal("form-modal"),
+    })
+  );
+
+  showFormModal("手动复制链接", modalContent.outerHTML);
+  textarea.select();
+}
+
+async function deleteCurrentPreview() {
+  if (!currentPreviewItem) {
+    showToast("没有可删除的文件", "warning")
+    return
+  }
+
+  if (!confirm("确定要删除此文件吗？此操作不可撤销。")) return
+
+  showLoading("正在删除文件...")
+
+  try {
+    let endpoint = ""
+    const formData = new FormData()
+
+    if (currentPreviewItem.isPhoto) {
+      endpoint = "/photo/delete"
+      formData.append("photoId", currentPreviewItem.id)
+    } else if (currentPreviewItem.isSwapResult) {
+      endpoint = "/swap/delete"
+      formData.append("swapId", currentPreviewItem.id)
+    } else {
+      endpoint = "/file/delete"
+      formData.append("fileId", currentPreviewItem.id)
+    }
+
+    const response = await fetch(endpoint, {
+      method: "POST",
+      body: formData,
+    })
+
+    if (response.ok) {
+      const result = await response.json()
+      if (result > 0) {
+        showToast("文件删除成功", "success")
+        hideModal("preview-modal")
+
+        // 刷新列表
+        if (currentPreviewItem.isPhoto) {
+          loadPhotos()
+        } else if (currentPreviewItem.isSwapResult) {
+          loadFaceSwapHistory()
+        } else {
+          loadFiles()
+        }
+
+        loadDashboardData()
+      } else {
+        showToast("文件删除失败", "error")
+      }
+    } else {
+      showToast("删除失败，请检查网络连接", "error")
+    }
+  } catch (error) {
+    console.error("Delete file error:", error)
+    showToast("删除失败，请稍后重试", "error")
+  } finally {
+    hideLoading()
+  }
 }

@@ -1253,11 +1253,16 @@ body {
   background-color: var(--hover-bg);
   border-radius: var(--border-radius-small);
   margin-bottom: 12px;
+  overflow: hidden; /* 添加这行 */
+  position: relative; /* 添加这行 */
 }
 
-.file-icon .material-icons {
-  font-size: 36px;
-  color: var(--text-secondary);
+.file-icon img {
+  transition: transform 0.2s ease;
+}
+
+.file-item:hover .file-icon img {
+  transform: scale(1.05);
 }
 
 .file-info h4 {
@@ -1673,6 +1678,23 @@ body {
   display: flex;
   gap: 8px;
   align-items: center;
+}
+
+#preview-prev,
+#preview-next {
+  background-color: var(--surface-color);
+  border: 1px solid var(--border-color);
+}
+
+#preview-prev:disabled,
+#preview-next:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+#preview-prev:not(:disabled):hover,
+#preview-next:not(:disabled):hover {
+  background-color: var(--hover-bg);
 }
 
 .close-btn {

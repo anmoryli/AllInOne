@@ -36,29 +36,29 @@ class ApiServiceTest {
 //        JsonNode ret = apiService.getTaskResult(request);
 //        System.out.println("ret: " + ret);
 //    }
-    @Test
-    void testImg() {
-        try {
-            URL url = new URL("https://api.yaohud.cn/api/v5/duitang?key=pv9eQ1A9BcnRW9msVP2&msg=漂亮小姐姐");
-            HttpURLConnection connection = (HttpURLConnection)url.openConnection();
-
-            // 设置请求方式
-            connection.setRequestMethod("GET");
-            connection.connect();
-
-            // 获取响应码
-            int responseCode = connection.getResponseCode();
-            if (responseCode == HttpURLConnection.HTTP_OK) {
-                BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    // 读取到的内容给line变量
-                    System.out.println(line);
-                }
-                reader.close();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+//    @Test
+//    void testImg() {
+//        try {
+//            URL url = new URL("https://api.yaohud.cn/api/v5/duitang?key=pv9eQ1A9BcnRW9msVP2&msg=漂亮小姐姐");
+//            HttpURLConnection connection = (HttpURLConnection)url.openConnection();
+//
+//            // 设置请求方式
+//            connection.setRequestMethod("GET");
+//            connection.connect();
+//
+//            // 获取响应码
+//            int responseCode = connection.getResponseCode();
+//            if (responseCode == HttpURLConnection.HTTP_OK) {
+//                BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+//                String line;
+//                while ((line = reader.readLine()) != null) {
+//                    // 读取到的内容给line变量
+//                    System.out.println(line);
+//                }
+//                reader.close();
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//    }
 }
